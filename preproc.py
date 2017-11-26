@@ -6,27 +6,38 @@ import utils
 from lib import pretty_midi as pmidi
 
 proj_dir = os.getcwd()
-data_dir = proj_dir + '/data'
+data_dir = 'data'
 wav_dir = data_dir + '/wav'
 mid_dir = data_dir + '/mid'
-train_dir = data_dir + 'train'
+train_dir = data_dir + '/train'
 
-os.chdir(wav_dir)
-wavfiles = [glob.glob('*.wav')]
-os.chdir(mid_dir)
-midfiles = [glob.glob('*.mid')]
-trainfiles = [(wav_dir + '/' + fn, mid_dir + fn[:-3] + '.mid') for fn in wavfiles]
+sample_rate = 16000
 
+os.chdir(proj_dir + '/' + mid_dir)
+midfiles = glob.glob('*.mid')
+
+trainfiles = []
+os.chdir(proj_dir + '/' + wav_dir)
+for fname in midfiles:
+    base_fname = fname.split('.')[0]
+    trainfiles += [(wav_dir + '/' + wavfile, mid_dir + '/' + fname) for wavfile in glob.glob(base_fname + '*')]
+
+os.chdir(proj_dir)
 for wav, mid in trainfiles:
+    # do constant-q transform on the wav file
     wavdata = utils.load_wav(wav)
-    cqt = utils.cqt(wavdata)
-    savefile = open(train_dir + wav + '.npy', 'w')
+    # cqt = utils.cqt(wavdata)
+    cqt = utils.cqt_windows(wavdata, 7)
+    savefile = train_dir + '/' + wav.split('/')[-1]
     np.save(savefile, cqt)
-    print ('wrote {}'.format(savefile.name), file=sys.stderr)
+    print ('wrote {}'.format(savefile), file=sys.stderr)
 
-    labels = np.zeros((88,cqt.shape[1]))
-    with open(mid) as f:
-        pm = pmidi.PrettyMIDI(mid)
+    labels = np.zeros((88, cqt.shape[1]))
+    pm = pmidi.PrettyMIDI(mid)
+    piano_roll = pm.get_piano_roll(fs=sample_rate)  # would times=cqt.shape[1] be correct?
+    print ('done')
+
+
 
 #     lines = lines[1:]
 #     lines = [line.strip().split('\t') for line in lines]

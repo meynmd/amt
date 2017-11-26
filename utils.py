@@ -203,3 +203,8 @@ def cqt(wav,sr=16000,hop_length=512,n_bins=264,bins_per_octave=36):
                  hop_length=hop_length,fmin=librosa.core.note_to_hz('A0'),
                  n_bins=n_bins,bins_per_octave=bins_per_octave))
   return cqt_wav
+
+def cqt_windows(wav, size_w, sr=16000,hop_length=512,n_bins=264,bins_per_octave=36):
+  trans = cqt(wav, sr, hop_length, n_bins, bins_per_octave)
+  return np.array([trans[:, i : i + size_w] for i in range(trans.shape[1] - size_w + 1)])
+
