@@ -30,7 +30,7 @@ for wav, mid in trainfiles:
     cqt = utils.cqt_windows(wavdata, 7)
     savefile = train_dir + '/' + wav.split('/')[-1]
     np.save(savefile, cqt)
-    print ('wrote {}'.format(savefile), file=sys.stderr)
+    print ('wrote {}.npy'.format(savefile), file=sys.stderr)
 
     labels = np.zeros((88, cqt.shape[1]))
     pm = pmidi.PrettyMIDI(mid)
