@@ -25,6 +25,7 @@ for fname in midfiles:
     testfiles += [('data/test/wav/' + wavfile, 'data/test/mid/' + fname) for wavfile in glob.glob(base_fname + '*')]
 
 # gather train files
+"""
 os.chdir(proj_dir + '/data/train/mid')
 midfiles = glob.glob('*.mid')
 trainfiles = []
@@ -33,6 +34,16 @@ for fname in midfiles:
     base_fname = fname.split('.')[0]
     trainfiles += [('data/train/wav/' + wavfile, 'data/train/mid/' + fname)
                    for wavfile in glob.glob(base_fname + '*')]
+"""
+
+os.chdir(proj_dir + '/data/train/wav')
+wavfiles = glob.glob('*.wav')
+trainfiles = []
+os.chdir(proj_dir + '/data/train/mid')
+for wname in wavfiles:
+    base_fname = wname.split('_')[0]
+    trainfiles += [('data/train/wav/' + wname, 'data/train/mid/' + base_fname + '.mid')]
+
 
 # preprocess test
 xs, ys = [], []
