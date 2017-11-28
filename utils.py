@@ -7,6 +7,7 @@ import torch
 from torch.autograd import Variable
 import scipy.io.wavfile
 import librosa
+import sys
 
 def correct_perm(perms,piece_lens,padding):
   """
@@ -65,7 +66,7 @@ def next_batch(inputs,labels,perms,train_len_list,window_size):
   corrected_perms = correct_perm(perms,train_len_list,(3,3))
 
   for i, perm in enumerate(corrected_perms):
-    input_batch[i,0,:,:] = inputs[perm-window_size/2:perm+window_size/2+1,:]
+    input_batch[i,0,:,:] = inputs[perm-window_size//2 : perm+window_size//2+1, :]
     label_batch[i,:] = labels[perm,:]
 
   return input_batch,label_batch
@@ -149,7 +150,7 @@ def window(data,window_size):
   return windowed_data
 
 
-def data_load(path,max_files=0):
+def data_load(path, max_files=0):
   """
   Load cqt and label data and return it as list.
   Order of cqt and label in each list is guaranteed to be same by using sort().
@@ -165,14 +166,32 @@ def data_load(path,max_files=0):
   y_list = []
 
   # Separate cqt and label file
-  for i,f in enumerate(f_list):
+  for i, f in enumerate(f_list):
     if (max_files!=0 and i>=max_files) : break
+    filename = path + '/' + f
     if '.wav' in f:
-      x_list.append(np.load(os.path.join(path,f)).T)
-    elif '.txt' in f:
-      y_list.append(np.load(os.path.join(path,f)).T)
+      base_name = f.split('_')[0]
+      mid_name = base_name + '.mid.npy'
+      if mid_name in f_list:
+        x_list.append(np.load(filename))
+        y_list.append(np.load(path + '/' + mid_name))
+        print('loading {} to x list'.format(filename), file=sys.stderr)
+        print( 'loading {} to y list'.format( path + '/' + mid_name ), file=sys.stderr)
 
-  return x_list,y_list
+
+
+  # for i, f in enumerate(f_list):
+  #   if (max_files!=0 and i>=max_files) : break
+  #   filename = path + '/' + f
+  #   if '.wav' in f:
+  #     x_list.append(np.load(filename))
+  #     print('loading {} to x list'.format(filename))
+  #   elif '.mid' in f:
+  #     y_list.append(np.load(filename))
+  #     print('loading {} to y list'.format(filename))
+
+
+  return x_list, y_list
 
 
 def load_wav(path,target_sr=16000):
@@ -184,7 +203,7 @@ def load_wav(path,target_sr=16000):
     sr (python float) : sample rate. default is 16000.
     wav_resample (numpy array) : resampled wav data. shape = [len].
   """
-  original_sr,wav = scipy.io.wavfile.read(path)
+  original_sr, wav = scipy.io.wavfile.read(path)
   wav = 0.5*(wav[:,0]+wav[:,1])
   wav_resample = librosa.core.resample(wav,original_sr,target_sr)
 
@@ -206,5 +225,6 @@ def cqt(wav,sr=16000,hop_length=512,n_bins=264,bins_per_octave=36):
 
 def cqt_windows(wav, size_w, sr=16000,hop_length=512,n_bins=264,bins_per_octave=36):
   trans = cqt(wav, sr, hop_length, n_bins, bins_per_octave)
+  trans = np.pad(trans, ((int(size_w / 2), int(size_w / 2)), (0, 0)), 'constant', constant_values=np.min(trans))
   return np.array([trans[:, i : i + size_w] for i in range(trans.shape[1] - size_w + 1)])
 
