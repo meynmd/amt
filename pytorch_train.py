@@ -17,12 +17,11 @@ def main():
   proj_path = os.getcwd()
   data_path = 'data'
   train_path = data_path + '/train/preprocessed'
-  # data_path = '/home/data/kyungsu/AMT/processed/'
   model_save_path = 'model'
 
   save_freq = 10
   max_epoch = 5000
-  max_patience = 20
+  max_patience = 30
   window_size = 7
   num_features = 264
   batch_size = 1024
@@ -106,7 +105,7 @@ def main():
       print('\nBest model is saved.***\n', file=sys.stderr)
     else :
       patience += 1
-    if(patience==200 or i==max_epoch-1) :
+    if(patience==max_patience or i==max_epoch-1) :
       torch.save(net.state_dict(),model_save_path+'_ReLU_whole_log'+str(i+1))
       print('\n***{}th last model is saved.***\n'.format(i+1), file=sys.stderr)
       break
