@@ -67,7 +67,8 @@ def run_train(net,inputs,labels,criterion,optimizer,
   num_samples = sum(piece_lens)
   num_batches = (num_samples+batch_size-1) // batch_size
 
-  perm = np.random.permutation(num_samples)
+  perm = np.random.permutation(num_samples - window_size - 2)
+  perm = perm + np.ones(perm.shape) * window_size // 2
   for i in range(num_batches):
 
     input_batch,label_batch = utils.next_batch(
@@ -97,7 +98,9 @@ def run_loss(net,inputs,labels,criterion,piece_lens,batch_size,window_size):
   num_samples = sum(piece_lens)
   num_batches = (num_samples+batch_size-1) // batch_size
 
-  perm = np.random.permutation(num_samples)
+  # perm = np.random.permutation(num_samples)
+  perm = np.random.permutation(num_samples - window_size - 2)
+  perm = perm + np.ones(perm.shape) * window_size // 2
 
   for i in range(num_batches):
     input_batch,label_batch = utils.next_batch(

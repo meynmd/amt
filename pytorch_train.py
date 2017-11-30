@@ -29,26 +29,27 @@ def main():
   net = pytorch_model.AMT(window_size,num_features).cuda()
   train_x_list,train_y_list = utils.data_load(train_path)
   test_x_list,test_y_list = utils.data_load('data/test/preprocessed', 2)
+
   train_piece_lens = []
   test_piece_lens = []
 
   # Standardize.
   for i in range(len(train_x_list)):
-    train_piece_lens.append(train_x_list[i].shape[0])
     # Add 1 to train data for log computability.
     # It can be inversed at post-processing phase.
     # train_x_list[i] = np.pad(standardized, ((3,3),(0,0)),'constant')
     # train_y_list[i] = np.pad(train_y_list[i],((3,3),(0,0)),'constant')
     train_x_list[i] = utils.standardize(train_x_list[i]+1,log=True).T
     train_y_list[i] = train_y_list[i].T
+    train_piece_lens.append(train_x_list[i].shape[0])
   print('train loaded {}/{}'.format(i+1, len(train_x_list)))
 
   for i in range(len(test_x_list)):
-    test_piece_lens.append(test_x_list[i].shape[0])
     # Add 1 to train data for log computability.
     # It can be inversed at post-processing phase.
     test_x_list[i] = utils.standardize(test_x_list[i]+1,log=True).T
     test_y_list[i] = test_y_list[i].T
+    test_piece_lens.append(test_x_list[i].shape[0])
 
     # test_x_list[i] = np.pad(utils.standardize(test_x_list[i]+1,log=True),
     #                          ((3,3),(0,0)),'constant')

@@ -40,7 +40,7 @@ def next_batch(inputs,labels,perms,train_len_list,window_size):
   Index is manipulated to avoid to indicate padded area.
   Args
     inputs (torch.Tensor) : input data. shape = [num_samples, num_features(264)]
-    labels (torch.Tensor) : label data. shape = [num_samples, dim_label (88)]
+    labels (torch.Tensor) : label data. shape = [num_samples, ==> dim_label (88)] <===========
     perms (numpy int array) : array of index to sample. shape = [<=batch_size]
     train_len_list (numpy list) :
         list of samples of each music piece. They are separated with zero pads.
@@ -66,7 +66,7 @@ def next_batch(inputs,labels,perms,train_len_list,window_size):
   corrected_perms = correct_perm(perms,train_len_list,(3,3))
 
   for i, perm in enumerate(corrected_perms):
-    input_batch[i,0,:,:] = inputs[perm-window_size//2 : perm+window_size//2+1, :]
+    input_batch[i,0,:,:] = inputs[int(perm-window_size//2) : int(perm+window_size//2+1), :]
     label_batch[i,:] = labels[perm,:]
 
   return input_batch,label_batch
@@ -164,7 +164,7 @@ def data_load(path, max_files=0):
   f_list = sorted(os.listdir(path))
   x_list = []
   y_list = []
-
+  x_list
   # Separate cqt and label file
   for i, f in enumerate(f_list):
     if (max_files!=0 and i>=max_files) : break
