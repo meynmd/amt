@@ -28,7 +28,7 @@ def main():
 
   net = pytorch_model.AMT(window_size,num_features).cuda()
   train_x_list,train_y_list = utils.data_load(train_path)
-  test_x_list,test_y_list = utils.data_load('data/test/preprocessed', 2)
+  test_x_list,test_y_list = utils.data_load('data/test/preprocessed')
 
   train_piece_lens = []
   test_piece_lens = []
