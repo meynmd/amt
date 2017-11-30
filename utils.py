@@ -9,6 +9,7 @@ import scipy.io.wavfile
 import librosa
 import sys
 
+
 def correct_perm(perms,piece_lens,padding):
   """
   A function for correcting permutation index.
@@ -66,6 +67,8 @@ def next_batch(inputs,labels,perms,train_len_list,window_size):
   corrected_perms = correct_perm(perms,train_len_list,(3,3))
 
   for i, perm in enumerate(corrected_perms):
+    while perm >= inputs.size()[0] - window_size//2:
+      perm -= window_size
     input_batch[i,0,:,:] = inputs[int(perm-window_size//2) : int(perm+window_size//2+1), :]
     label_batch[i,:] = labels[perm,:]
 
@@ -173,8 +176,15 @@ def data_load(path, max_files=0):
       base_name = f.split('_')[0]
       mid_name = base_name + '.mid.npy'
       if mid_name in f_list:
-        x_list.append(np.load(filename))
-        y_list.append(np.load(path + '/' + mid_name))
+        x_data = np.load(filename)
+        y_data = np.load(path + '/' + mid_name)
+        if x_data.shape[1] == y_data.shape[1]:
+          x_list.append(x_data)
+          y_list.append(y_data)
+        else:
+          print('warning: data sizes from files {} and {} do not match. Ignoring.'.format(filename, mid_name))
+        # x_list.append(np.load(filename))
+        # y_list.append(np.load(path + '/' + mid_name))
         print('loading {} to x list'.format(filename), file=sys.stderr)
         print( 'loading {} to y list'.format( path + '/' + mid_name ), file=sys.stderr)
 

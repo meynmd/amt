@@ -24,7 +24,7 @@ def main():
   max_patience = 30
   window_size = 7
   num_features = 264
-  batch_size = 1024
+  batch_size = 4
 
   net = pytorch_model.AMT(window_size,num_features).cuda()
   train_x_list,train_y_list = utils.data_load(train_path)

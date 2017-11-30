@@ -6,6 +6,7 @@ import utils
 import numpy as np
 import pdb
 import sys
+import random
 
 class AMT(nn.Module):
 
@@ -69,6 +70,8 @@ def run_train(net,inputs,labels,criterion,optimizer,
 
   perm = np.random.permutation(num_samples - window_size - 2)
   perm = perm + np.ones(perm.shape) * window_size // 2
+
+
   for i in range(num_batches):
 
     input_batch,label_batch = utils.next_batch(

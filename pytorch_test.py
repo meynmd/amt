@@ -23,7 +23,7 @@ def main():
     max_patience = 30
     window_size = 7
     num_features = 264
-    batch_size = 1024
+    batch_size = 16
 
     torch.load()
 
