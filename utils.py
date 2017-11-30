@@ -60,10 +60,8 @@ def next_batch(inputs,labels,perms,train_len_list,window_size):
   batch_size = len(perms)
   num_features = inputs.data.size()[1]
   dim_label = labels.data.size()[1]
-  input_batch = Variable(torch.cuda.FloatTensor(batch_size,
-                                                1,window_size,num_features))
+  input_batch = Variable(torch.cuda.FloatTensor(batch_size, 1, window_size,num_features))
   label_batch = Variable(torch.cuda.FloatTensor(batch_size,dim_label))
-
   corrected_perms = correct_perm(perms,train_len_list,(3,3))
 
   for i, perm in enumerate(corrected_perms):
