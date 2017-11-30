@@ -102,12 +102,14 @@ def main():
     if(valid_loss<min_valid_loss):
       patience = 0
       min_valid_loss = valid_loss
-      torch.save(net.state_dict(),model_save_path+'_ReLU_whole_log_best')
+      # torch.save(net.state_dict(),model_save_path+'_ReLU_whole_log_best')
+      torch.save(net, model_save_path + '/' + 'model_best.pt')
       print('\nBest model is saved.***\n', file=sys.stderr)
     else :
       patience += 1
     if(patience==max_patience or i==max_epoch-1) :
-      torch.save(net.state_dict(),model_save_path+'_ReLU_whole_log'+str(i+1))
+      # torch.save(net.state_dict(),model_save_path+'_ReLU_whole_log'+str(i+1))
+      torch.save( net, model_save_path + 'model_ReLU_whole_log' + str( i + 1 ) )
       print('\n***{}th last model is saved.***\n'.format(i+1), file=sys.stderr)
       break
 
@@ -119,7 +121,8 @@ def main():
     # print(i+1, train_loss[0], valid_loss[0])
 
     if ( i % save_freq == save_freq-1):
-      torch.save(net.state_dict(),model_save_path+'_ReLU_whole_log'+str(i+1))
+      # torch.save(net.state_dict(),model_save_path+'_ReLU_whole_log'+str(i+1))
+      torch.save( net, model_save_path + 'model_ReLU_whole_log' + str( i + 1 ) )
       print ('\n***{}th model is saved.***\n'.format(i+1), file=sys.stderr)
 
 if __name__ == '__main__':
