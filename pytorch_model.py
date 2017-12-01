@@ -63,15 +63,18 @@ class AMT( nn.Module ):
 
 def run_train( net, inputs, labels, criterion, optimizer,
                piece_lens, batch_size=256, window_size=7 ):
+    print ('run train')
     overall_loss = 0.0
     overall_num_samples = 0
     num_samples = sum( piece_lens )
-    num_batches = (num_samples + batch_size - 1) // batch_size
+    # num_batches = (num_samples + batch_size - 1) // batch_size
+    num_batches = 50
 
     perm = np.random.permutation( num_samples - window_size - 2 )
     perm = perm + np.ones( perm.shape ) * window_size // 2
 
     for i in range( num_batches ):
+        print(i)
         input_batch, label_batch = utils.next_batch(
             inputs, labels, perm[i * batch_size:(i + 1) * batch_size],
             piece_lens, window_size )
@@ -85,9 +88,10 @@ def run_train( net, inputs, labels, criterion, optimizer,
         overall_num_samples += input_batch.size()[0]
         cumul_loss = overall_loss / float( overall_num_samples )
         print( 'progress : {:4d}/{:4d} loss : {:6.3f}'.format(
-            i, num_batches, cumul_loss.cpu().data.numpy()[0] ), end='\r', file=sys.stderr )
+            i, num_batches, cumul_loss.cpu().data.numpy()[0] ), end='\r' )
         sys.stdout.flush()
-
+        sys.stderr.flush()
+        # print ('delete minibatch')
         del input_batch, label_batch, output_batch, loss
         gc.collect()
 
@@ -98,12 +102,13 @@ def run_train( net, inputs, labels, criterion, optimizer,
 
 
 def run_loss( net, inputs, labels, criterion, piece_lens, batch_size, window_size ):
+    print('run loss')
     overall_loss = 0.0
     overall_num_samples = 0
     num_samples = sum( piece_lens )
-    num_batches = (num_samples + batch_size - 1) // batch_size
+    # num_batches = (num_samples + batch_size - 1) // batch_size
+    num_batches = 5
 
-    # perm = np.random.permutation(num_samples)
     perm = np.random.permutation( num_samples - window_size - 2 )
     perm = perm + np.ones( perm.shape ) * window_size // 2
 
@@ -111,7 +116,7 @@ def run_loss( net, inputs, labels, criterion, piece_lens, batch_size, window_siz
         input_batch, label_batch = utils.next_batch(
             inputs, labels, perm[i * batch_size:(i + 1) * batch_size],
             piece_lens, window_size )
-
+        print (i)
         output_batch = net( input_batch )
         loss = criterion( output_batch, label_batch )
         overall_loss += loss * input_batch.size()[0]

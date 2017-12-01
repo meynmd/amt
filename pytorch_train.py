@@ -36,10 +36,6 @@ def main():
 
     # Standardize.
     for i in range( len( train_x_list ) ):
-        # Add 1 to train data for log computability.
-        # It can be inversed at post-processing phase.
-        # train_x_list[i] = np.pad(standardized, ((3,3),(0,0)),'constant')
-        # train_y_list[i] = np.pad(train_y_list[i],((3,3),(0,0)),'constant')
         train_x_list[i] = utils.standardize( train_x_list[i] + 1, log=True ).T
         train_y_list[i] = train_y_list[i].T
         train_piece_lens.append( train_x_list[i].shape[0] )
@@ -83,7 +79,7 @@ def main():
 
     print( 'Preprocessing Completed.' )
 
-    mb_size = 5000
+    mb_size = 500
     num_megabatches = train_x.data.shape[0] // mb_size
     train_megabatches = [(train_x[k*mb_size : (k+1)*mb_size, :], train_y[k*mb_size : (k+1)*mb_size, :])
                    for k in range(num_megabatches)]
@@ -97,7 +93,7 @@ def main():
     for j in range(num_megabatches):
 
         for i in range( max_epoch ):
-
+            print('allocate variables')
             train_x = Variable( torch.Tensor( train_megabatches[j][0] ) )
             train_y = Variable( torch.Tensor( train_megabatches[j][1] ) )
             test_x = Variable( torch.Tensor( test_megabatches[j][0] ) )
