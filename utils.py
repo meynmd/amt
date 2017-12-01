@@ -183,22 +183,11 @@ def data_load( path, max_files=0 ):
                     x_list.append( x_data )
                     y_list.append( y_data )
                 else:
-                    print( 'warning: data sizes from files {} and {} do not match. Ignoring.'.format( filename,
-                                                                                                      mid_name ) )
+                    print( 'warning: data sizes from files {} and {} do not match. Ignoring.'.format(
+                        filename, mid_name ),file=sys.stderr )
 
                 print( 'loading {} to x list'.format( filename ), file=sys.stderr )
                 print( 'loading {} to y list'.format( path + '/' + mid_name ), file=sys.stderr )
-
-    # for i, f in enumerate(f_list):
-    #   if (max_files!=0 and i>=max_files) : break
-    #   filename = path + '/' + f
-    #   if '.wav' in f:
-    #     x_list.append(np.load(filename))
-    #     print('loading {} to x list'.format(filename))
-    #   elif '.mid' in f:
-    #     y_list.append(np.load(filename))
-    #     print('loading {} to y list'.format(filename))
-
 
     return x_list, y_list
 

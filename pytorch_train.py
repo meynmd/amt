@@ -25,7 +25,7 @@ def main():
     max_patience = 30
     window_size = 7
     num_features = 264
-    batch_size = 64
+    batch_size = 128
 
     net = pytorch_model.AMT( window_size, num_features ).cuda()
     train_x_list, train_y_list = utils.data_load( train_path )
@@ -39,7 +39,7 @@ def main():
         train_x_list[i] = utils.standardize( train_x_list[i] + 1, log=True ).T
         train_y_list[i] = train_y_list[i].T
         train_piece_lens.append( train_x_list[i].shape[0] )
-    print( 'train loaded {}/{}'.format( i + 1, len( train_x_list ) ) )
+    print( 'train loaded {}/{}'.format( i + 1, len( train_x_list ) ), file=sys.stderr )
 
     for i in range( len( test_x_list ) ):
         # Add 1 to train data for log computability.
@@ -52,7 +52,7 @@ def main():
         #                          ((3,3),(0,0)),'constant')
         # test_y_list[i] = np.pad(test_y_list[i],((3,3),(0,0)),'constant')
 
-        print( 'test loaded {}/{}'.format( i + 1, len( test_x_list ) ) )
+        print( 'test loaded {}/{}'.format( i + 1, len( test_x_list ) ), file=sys.stderr )
 
     train_x = np.vstack( train_x_list )
     del train_x_list
@@ -77,10 +77,11 @@ def main():
     criterion = nn.MSELoss()
     optimizer = optim.Adam( net.parameters() )
 
-    print( 'Preprocessing Completed.' )
+    print( 'Preprocessing Completed.', file=sys.stderr)
 
-    mb_size = 500
+    mb_size = 5000
     num_megabatches = train_x.data.shape[0] // mb_size
+    print( '{} megabatches\n'.format(num_megabatches), file=sys.stderr )
     train_megabatches = [(train_x[k*mb_size : (k+1)*mb_size, :], train_y[k*mb_size : (k+1)*mb_size, :])
                    for k in range(num_megabatches)]
     # train_megabatches.append((train_x[num_megabatches*mb_size :, :], train_y[num_megabatches*mb_size :, :]))
@@ -91,9 +92,9 @@ def main():
     del train_x, train_y, test_x, test_y
 
     for j in range(num_megabatches):
+        print( 'megabatch {}'.format(i+1) )
 
         for i in range( max_epoch ):
-            print('allocate variables')
             train_x = Variable( torch.Tensor( train_megabatches[j][0] ) )
             train_y = Variable( torch.Tensor( train_megabatches[j][1] ) )
             test_x = Variable( torch.Tensor( test_megabatches[j][0] ) )
@@ -120,10 +121,10 @@ def main():
                 print( '\n***{}th last model is saved.***\n'.format( i + 1 ), file=sys.stderr )
                 break
 
-            print( '------{}th iteration (max:{})-----'.format( i + 1, max_epoch ), file=sys.stderr )
-            print( 'train_loss : ', train_loss, file=sys.stderr )
-            print( 'valid_loss : ', valid_loss, file=sys.stderr )
-            print( 'patience : ', patience, file=sys.stderr )
+            print( '------{}th iteration (max:{})-----'.format( i + 1, max_epoch ))
+            print( 'train_loss : ', train_loss)
+            print( 'valid_loss : ', valid_loss )
+            print( 'patience : ', patience )
 
             # print(i+1, train_loss[0], valid_loss[0])
 
