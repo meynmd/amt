@@ -80,8 +80,8 @@ def run_test( net, inputs, labels, criterion, piece_lens, batch_size, window_siz
     for i in range(window_size // 2, len(inputs - window_size // 2) - 1):
         x = inputs[i - window_size // 2 : i + window_size // 2 + 1, :]
         y = labels[i].cpu().data.numpy()
-        z = net(x).cpu().data.numpy()
-        z = z.round()
+        z = net(x).cpu().data.numpy()[0, :]
+        z = 1 * (z.round() > 0)
         tp += y.dot(z)
         fp += np.sum(1 * (y - z < 0))
         fn += np.sum(1 * (z - y < 0))
@@ -92,4 +92,4 @@ def run_test( net, inputs, labels, criterion, piece_lens, batch_size, window_siz
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
