@@ -77,7 +77,7 @@ def run_test( net, inputs, labels, criterion, piece_lens, batch_size, window_siz
     num_batches = num_samples // batch_size
     # num_batches = 5
     tp, fp, fn = 0, 0, 0
-    for i in range(window_size // 2, len(inputs - window_size // 2) - 1):
+    for i in range(window_size // 2, inputs.data.size()[0] - window_size // 2 - 1):
         x = inputs[i - window_size // 2 : i + window_size // 2 + 1, :]
         y = labels[i].cpu().data.numpy()
         z = net(x).cpu().data.numpy()[0, :]
