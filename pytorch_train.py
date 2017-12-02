@@ -5,7 +5,8 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import pytorch_model
+# import pytorch_model
+import amt_model as pytorch_model
 import numpy as np
 import os.path
 import utils
@@ -25,7 +26,8 @@ def main():
     max_patience = 30
     window_size = 7
     num_features = 264
-    batch_size = 128
+    batch_size = 512
+    mb_size = 5000
 
     net = pytorch_model.AMT( window_size, num_features ).cuda()
     train_x_list, train_y_list = utils.data_load( train_path )
@@ -78,8 +80,8 @@ def main():
     optimizer = optim.Adam( net.parameters() )
 
     print( 'Preprocessing Completed.', file=sys.stderr)
+    sys.stderr.flush()
 
-    mb_size = 5000
     num_megabatches = train_x.data.shape[0] // mb_size
     print( '{} megabatches\n'.format(num_megabatches), file=sys.stderr )
     train_megabatches = [(train_x[k*mb_size : (k+1)*mb_size, :], train_y[k*mb_size : (k+1)*mb_size, :])

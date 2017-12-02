@@ -14,13 +14,16 @@ class AMT( nn.Module ):
     def __init__( self, window_size=7, num_features=264 ):
         super( AMT, self ).__init__()
 
+        print ('AMT 3-conv-layer', file=sys.stderr)
+
         # Model parameters.
         self.window_size = window_size
         self.num_features = num_features
 
         # Conv layers.
-        self.conv1 = nn.Conv2d( 1, 50, (5, 25), padding=(2, 12) )
-        self.conv2 = nn.Conv2d( 50, 50, (3, 5), padding=(1, 2) )
+        self.conv1 = nn.Conv2d( 1, 50, (1, num_features // 2), padding=(2, 32) )
+        self.conv2 = nn.Conv2d( 50, 50, (3, num_features // 8), padding=(2, 16) )
+        self.conv3 = nn.Conv2d(50, 50, (5, num_features // 16), padding=(4, 8))
 
         # FC layers.
         self.fc1 = nn.Linear( 7 * 30 * 50, 1000 )
@@ -32,8 +35,10 @@ class AMT( nn.Module ):
 
     def forward( self, x ):
         x = x.view( -1, 1, self.window_size, self.num_features )
-        x = F.relu( F.max_pool2d( self.conv1( x ), (1, 3) ) )
-        x = F.relu( F.max_pool2d( self.conv2( x ), (1, 3), padding=(0, 1) ) )
+        x = F.relu( F.max_pool2d( self.conv1( x ), (1, 2) ) )
+        x = F.relu( F.max_pool2d( self.conv2( x ), (1, 2), padding=(0, 1) ) )
+        x = F.relu( F.max_pool2d( self.conv3( x ), (1, 2), padding=(0, 1) ) )
+
         x = x.view( -1, 7 * 30 * 50 )
         x = F.sigmoid( self.fc1( x ) )
         x = F.sigmoid( self.fc2( x ) )
