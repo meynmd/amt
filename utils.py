@@ -68,7 +68,7 @@ def next_batch( inputs, labels, perms, train_len_list, window_size ):
     for i, perm in enumerate( corrected_perms ):
         # stupid hack since I can't figure out why max of perm is too large
         while perm >= inputs.shape[0] - window_size // 2:
-            perm = random.randint(window_size, inputs.shape[0] - window_size)
+            perm -= window_size
 
         # copy the proper part of the training data into batch
         inp_arr = inputs[int( perm - window_size // 2 ): int( perm + window_size // 2 + 1 ), :]
