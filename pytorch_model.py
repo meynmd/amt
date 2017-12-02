@@ -8,7 +8,7 @@ import pdb
 import sys
 import random
 import gc
-
+import time
 
 class AMT( nn.Module ):
     def __init__( self, window_size=7, num_features=264 ):
@@ -66,8 +66,7 @@ def run_train( net, inputs, labels, criterion, optimizer,
     overall_loss = 0.0
     overall_num_samples = 0
     num_samples = sum( piece_lens )
-    num_batches = num_samples // batch_size
-    # num_batches = 50
+    num_batches = min(100, num_samples // batch_size)
 
     perm = np.random.permutation( num_samples - window_size - 2 )
     perm = perm + np.ones( perm.shape ) * window_size // 2
@@ -97,12 +96,12 @@ def run_train( net, inputs, labels, criterion, optimizer,
 
     return mean_loss
 
-
+"""
 def run_loss( net, inputs, labels, criterion, piece_lens, batch_size, window_size ):
     overall_loss = 0.0
     overall_num_samples = 0
     num_samples = sum( piece_lens )
-    num_batches = num_samples // batch_size
+    num_batches = min(5, num_samples // batch_size)
     # num_batches = 5
 
     perm = np.random.permutation( num_samples - window_size - 2 )
@@ -125,4 +124,42 @@ def run_loss( net, inputs, labels, criterion, piece_lens, batch_size, window_siz
 
     print( '', file=sys.stderr )
     mean_loss = overall_loss / float( num_samples )
+    return mean_loss
+"""
+
+def run_loss( net, inputs, labels, criterion, piece_lens, batch_size, window_size ):
+    overall_loss = 0.0
+    overall_num_samples = 0
+    num_samples = sum( piece_lens )
+    num_batches = num_samples // batch_size
+    # num_batches = 5
+
+    perm = np.random.permutation( num_samples - window_size - 2 )
+    perm = perm + np.ones( perm.shape ) * window_size // 2
+
+    for i in range( num_batches ):
+        input_batch, label_batch = utils.next_batch(
+            inputs, labels, perm[i * batch_size:(i + 1) * batch_size],
+            piece_lens, window_size )
+        output_batch = net( input_batch )
+        loss = criterion( output_batch, label_batch )
+        del output_batch
+        overall_loss += loss * input_batch.size()[0]
+        overall_num_samples += input_batch.size()[0]
+        cumul_loss = overall_loss / float( overall_num_samples )
+        print( 'valid progress : {:4d}/{:4d} loss : {:6.3f}'.format(
+            i, num_batches, cumul_loss.cpu().data.numpy()[0] ), file=sys.stderr) #, end='\r' )
+        sys.stdout.flush()
+        if i % 20 == 0:
+            lt = time.localtime()
+            torch.save( net, 'model/model_{}-{}-{}:{}_loss{}'.format(
+                lt.tm_mon, lt.tm_mday, lt.tm_hour, lt.tm_min, cumul_loss.cpu().data.numpy()[0]
+            ) )
+        del input_batch, label_batch, loss, cumul_loss
+        gc.collect()
+
+    print( '', file=sys.stderr )
+    mean_loss = overall_loss / float( num_samples )
+    del overall_loss, overall_num_samples, perm
+    gc.collect()
     return mean_loss
