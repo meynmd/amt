@@ -12,7 +12,7 @@ import utils
 import sys
 
 
-def main():
+def main(args):
     proj_path = os.getcwd()
     data_path = 'data'
     test_path = data_path + '/test/preprocessed'
@@ -25,25 +25,12 @@ def main():
     num_features = 264
     batch_size = 16
 
-    torch.load()
+    net = torch.load(args[1])
 
-    net = pytorch_model.AMT( window_size, num_features ).cuda()
-    train_x_list, train_y_list = utils.data_load( train_path )
-    test_x_list, test_y_list = utils.data_load( 'data/test/preprocessed', 2 )
+    test_x_list, test_y_list = utils.data_load( 'data/final/preprocessed')
 
     train_piece_lens = []
     test_piece_lens = []
-
-    # Standardize.
-    for i in range( len( train_x_list ) ):
-        # Add 1 to train data for log computability.
-        # It can be inversed at post-processing phase.
-        # train_x_list[i] = np.pad(standardized, ((3,3),(0,0)),'constant')
-        # train_y_list[i] = np.pad(train_y_list[i],((3,3),(0,0)),'constant')
-        train_x_list[i] = utils.standardize( train_x_list[i] + 1, log=True ).T
-        train_y_list[i] = train_y_list[i].T
-        train_piece_lens.append( train_x_list[i].shape[0] )
-    print( 'train loaded {}/{}'.format( i + 1, len( train_x_list ) ) )
 
     for i in range( len( test_x_list ) ):
         # Add 1 to train data for log computability.
@@ -52,16 +39,8 @@ def main():
         test_y_list[i] = test_y_list[i].T
         test_piece_lens.append( test_x_list[i].shape[0] )
 
-        # test_x_list[i] = np.pad(utils.standardize(test_x_list[i]+1,log=True),
-        #                          ((3,3),(0,0)),'constant')
-        # test_y_list[i] = np.pad(test_y_list[i],((3,3),(0,0)),'constant')
-
         print( 'test loaded {}/{}'.format( i + 1, len( test_x_list ) ) )
 
-    train_x = np.vstack( train_x_list )
-    del train_x_list
-    train_y = np.vstack( train_y_list )
-    del train_y_list
     test_x = np.vstack( test_x_list )
     del test_x_list
     test_y = np.vstack( test_y_list )
@@ -69,8 +48,6 @@ def main():
 
     # For GPU computing.
     dtype = torch.cuda.FloatTensor
-    train_x = Variable( torch.Tensor( train_x ).type( dtype ) )
-    train_y = Variable( torch.Tensor( train_y ).type( dtype ) )
     test_x = Variable( torch.Tensor( test_x ).type( dtype ) )
     test_x.volatile = True
     test_y = Variable( torch.Tensor( test_y ).type( dtype ) )
@@ -85,43 +62,34 @@ def main():
 
     print( 'Preprocessing Completed.' )
 
-    '''
-    net.load_state_dict(torch.load(model_save_path+'10'))
-    out = net(train_x[:10])
-    print(out)
-    '''
-    for i in range( max_epoch ):
+    # Train and calculate loss value.
+    prec, recall, acc = run_test( net, test_x, test_y, criterion,
+        test_piece_lens, batch_size, window_size )
+    f_score = 2 * prec * recall / (prec + recall)
 
-        # Train and calculate loss value.
-        train_loss = pytorch_model.run_train( net, train_x, train_y, criterion,
-                                              optimizer, train_piece_lens, batch_size,
-                                              window_size ).cpu().data.numpy()
-        valid_loss = pytorch_model.run_loss( net, test_x, test_y, criterion,
-                                             test_piece_lens, batch_size, window_size
-                                             ).cpu().data.numpy()
-        if (valid_loss < min_valid_loss):
-            patience = 0
-            min_valid_loss = valid_loss
-            torch.save( net.state_dict(), model_save_path + '_ReLU_whole_log_best' )
-            print( '\nBest model is saved.***\n', file=sys.stderr )
-        else:
-            patience += 1
-        if (patience == max_patience or i == max_epoch - 1):
-            torch.save( net.state_dict(), model_save_path + '_ReLU_whole_log' + str( i + 1 ) )
-            print( '\n***{}th last model is saved.***\n'.format( i + 1 ), file=sys.stderr )
-            break
+    print ('Precision: {}\tRecall: {}\tAccuracy: {}'.format(prec, recall, acc))
+    print ('F-score: {}'.format(f_score))
 
-        print( '------{}th iteration (max:{})-----'.format( i + 1, max_epoch ), file=sys.stderr )
-        print( 'train_loss : ', train_loss, file=sys.stderr )
-        print( 'valid_loss : ', valid_loss, file=sys.stderr )
-        print( 'patience : ', patience, file=sys.stderr )
 
-        # print(i+1, train_loss[0], valid_loss[0])
-
-        if (i % save_freq == save_freq - 1):
-            torch.save( net.state_dict(), model_save_path + '_ReLU_whole_log' + str( i + 1 ) )
-            print( '\n***{}th model is saved.***\n'.format( i + 1 ), file=sys.stderr )
+def run_test( net, inputs, labels, criterion, piece_lens, batch_size, window_size ):
+    overall_num_samples = 0
+    num_samples = sum( piece_lens )
+    num_batches = num_samples // batch_size
+    # num_batches = 5
+    tp, fp, fn = 0, 0, 0
+    for i in range(window_size // 2, len(inputs - window_size // 2) - 1):
+        x = inputs[i - window_size // 2 : i + window_size // 2 + 1, :]
+        y = labels[i].cpu().data.numpy()
+        z = net(x).cpu().data.numpy()[0, :]
+        z = 1 * (z.round() > 0)
+        tp += y.dot(z)
+        fp += np.sum(1 * (y - z < 0))
+        fn += np.sum(1 * (z - y < 0))
+    p = tp / float(tp + fp)
+    r = tp / float(tp + fn)
+    a = tp / float(tp + fp + fn)
+    return p, r, a
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

@@ -127,7 +127,7 @@ def run_loss( net, inputs, labels, criterion, piece_lens, batch_size, window_siz
         print( 'valid progress : {:4d}/{:4d} loss : {:6.3f}'.format(
             i, num_batches, cumul_loss.cpu().data.numpy()[0] ), end='\r', file=sys.stderr )
         sys.stdout.flush()
-        if i % 20 == 19:
+        if i % 20 == 0:
             lt = time.localtime()
             torch.save( net, 'model/model_{}-{}-{}:{}_loss{}'.format(
                 lt.tm_mon, lt.tm_mday, lt.tm_hour, lt.tm_min, cumul_loss.cpu().data.numpy()[0]
