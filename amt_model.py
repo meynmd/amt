@@ -95,12 +95,12 @@ def run_train( net, inputs, labels, criterion, optimizer,
             i, num_batches, cumul_loss.cpu().data.numpy()[0] ), end='\r', file=sys.stderr )
         sys.stdout.flush()
         sys.stderr.flush()
-        del input_batch, label_batch, output_batch, loss
+        del input_batch, label_batch, output_batch, loss, cumul_loss
         gc.collect()
 
     print( '', file=sys.stderr )
     mean_loss = overall_loss / float( num_samples )
-
+    del overall_loss, overall_num_samples, num_samples, perm,
     return mean_loss
 
 
@@ -120,19 +120,23 @@ def run_loss( net, inputs, labels, criterion, piece_lens, batch_size, window_siz
             piece_lens, window_size )
         output_batch = net( input_batch )
         loss = criterion( output_batch, label_batch )
+        del output_batch
         overall_loss += loss * input_batch.size()[0]
         overall_num_samples += input_batch.size()[0]
         cumul_loss = overall_loss / float( overall_num_samples )
         print( 'valid progress : {:4d}/{:4d} loss : {:6.3f}'.format(
             i, num_batches, cumul_loss.cpu().data.numpy()[0] ), end='\r', file=sys.stderr )
         sys.stdout.flush()
-        if i % 20 == 0:
+        if i % 20 == 19:
             lt = time.localtime()
-            torch.save( net, '/model/model_{}-{}-{}:{}_loss{}'.format(
+            torch.save( net, 'model/model_{}-{}-{}:{}_loss{}'.format(
                 lt.tm_mon, lt.tm_mday, lt.tm_hour, lt.tm_min, cumul_loss.cpu().data.numpy()[0]
             ) )
-        del input_batch, label_batch
+        del input_batch, label_batch, loss, cumul_loss
+        gc.collect()
 
     print( '', file=sys.stderr )
     mean_loss = overall_loss / float( num_samples )
+    del overall_loss, overall_num_samples
+    gc.collect()
     return mean_loss
