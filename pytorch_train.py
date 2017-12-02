@@ -94,7 +94,7 @@ def main():
     del train_x, train_y, test_x, test_y
 
     for j in range(num_megabatches):
-        print( 'megabatch {}'.format(i+1) )
+        print( 'megabatch {}'.format(j+1) )
 
         for i in range( max_epoch ):
             train_x = Variable( torch.Tensor( train_megabatches[j][0] ) )
