@@ -8,7 +8,8 @@ from torch.autograd import Variable
 import scipy.io.wavfile
 import librosa
 import sys
-
+import random
+import gc
 
 def correct_perm( perms, piece_lens, padding ):
     """
@@ -58,21 +59,25 @@ def next_batch( inputs, labels, perms, train_len_list, window_size ):
           shape = [batch_size,1,1,dim_label]
     """
     batch_size = len( perms )
-    num_features = inputs.data.size()[1]
-    dim_label = labels.data.size()[1]
+    num_features = inputs.shape[1]
+    dim_label = labels.shape[1]
     input_batch = Variable( torch.cuda.FloatTensor( batch_size, 1, window_size, num_features ) )
     label_batch = Variable( torch.cuda.FloatTensor( batch_size, dim_label ) )
     corrected_perms = correct_perm( perms, train_len_list, (3, 3) )
 
     for i, perm in enumerate( corrected_perms ):
         # stupid hack since I can't figure out why max of perm is too large
-        while perm >= inputs.size()[0] - window_size // 2:
-            perm -= window_size
+        while perm >= inputs.shape[0] - window_size // 2:
+            perm = random.randint(window_size, inputs.shape[0] - window_size)
 
         # copy the proper part of the training data into batch
-        input_batch[i, 0, :, :] = inputs[int( perm - window_size // 2 ): int( perm + window_size // 2 + 1 ), :]
-        label_batch[i, :] = labels[perm, :]
+        inp_arr = inputs[int( perm - window_size // 2 ): int( perm + window_size // 2 + 1 ), :]
+        input_batch[i, 0, :, :] = Variable( torch.Tensor( inp_arr ) )
+        lab_arr = labels[perm, :]
+        label_batch[i, :] = Variable( torch.Tensor( lab_arr ) )
 
+    del perms
+    gc.collect()
     return input_batch, label_batch
 
 

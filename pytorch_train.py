@@ -21,13 +21,13 @@ def main():
     train_path = data_path + '/train/preprocessed'
     model_save_path = 'model'
 
-    save_freq = 10
+    save_freq = 1
     max_epoch = 5
-    max_patience = 30
+    max_patience = 5
     window_size = 7
     num_features = 264
     batch_size = 128
-    mb_size = 5000
+    mb_size = 500
 
     net = pytorch_model.AMT( window_size, num_features ).cuda()
     train_x_list, train_y_list = utils.data_load( train_path )
@@ -97,10 +97,15 @@ def main():
         print( 'megabatch {}'.format(j+1) )
 
         for i in range( max_epoch ):
-            train_x = Variable( torch.Tensor( train_megabatches[j][0] ) )
-            train_y = Variable( torch.Tensor( train_megabatches[j][1] ) )
-            test_x = Variable( torch.Tensor( test_megabatches[j][0] ) )
-            test_y = Variable( torch.Tensor( test_megabatches[j][1] ) )
+            # train_x = Variable( torch.Tensor( train_megabatches[j][0] ) )
+            # train_y = Variable( torch.Tensor( train_megabatches[j][1] ) )
+            # test_x = Variable( torch.Tensor( test_megabatches[j][0] ) )
+            # test_y = Variable( torch.Tensor( test_megabatches[j][1] ) )
+
+            train_x =  train_megabatches[j][0]
+            train_y = train_megabatches[j][1]
+            test_x =  test_megabatches[j][0]
+            test_y = test_megabatches[j][1]
 
             # Train and calculate loss value.
             train_loss = pytorch_model.run_train( net, train_x, train_y, criterion,
@@ -135,7 +140,7 @@ def main():
                 torch.save( net, model_save_path + '/model' + str( i + 1 ) )
                 print( '\n***{}th model is saved.***\n'.format( i + 1 ), file=sys.stderr )
 
-            del train_x, train_y, test_x, test_y
+            del train_x, train_y, test_x, test_y, train_loss, valid_loss
 
 if __name__ == '__main__':
     main()
