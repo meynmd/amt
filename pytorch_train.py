@@ -5,8 +5,8 @@ from torch.autograd import Variable
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-# import pytorch_model
-import amt_model as pytorch_model
+import pytorch_model
+#import amt_model as pytorch_model
 import numpy as np
 import os.path
 import utils

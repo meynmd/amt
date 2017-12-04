@@ -73,7 +73,7 @@ def next_batch( inputs, labels, perms, train_len_list, window_size ):
         # copy the proper part of the training data into batch
         inp_arr = inputs[int( perm - window_size // 2 ): int( perm + window_size // 2 + 1 ), :]
         input_batch[i, 0, :, :] = Variable( torch.Tensor( inp_arr ) )
-        lab_arr = labels[perm, :]
+        lab_arr = labels[int(perm), :]
         label_batch[i, :] = Variable( torch.Tensor( lab_arr ) )
 
     del perms

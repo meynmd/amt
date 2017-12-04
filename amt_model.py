@@ -73,7 +73,7 @@ def run_train( net, inputs, labels, criterion, optimizer,
     overall_num_samples = 0
     num_samples = sum( piece_lens )
     # num_batches = num_samples // batch_size
-    num_batches = 500
+    num_batches = 50
 
     perm = np.random.permutation( num_samples - window_size - 2 )
     perm = perm + np.ones( perm.shape ) * window_size // 2
